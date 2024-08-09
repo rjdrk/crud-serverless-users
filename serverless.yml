@@ -34,7 +34,7 @@ custom:
 
 functions:
   get-users:
-    handler: getusers/handler.getUsers
+    handler: getUsers/handler.getUsers
     events:
       - http:
           path: users/{id}
@@ -45,6 +45,19 @@ functions:
       - http:
           path: users
           method: POST
+  update-users:
+    handler: updateUsers/handler.updateUsers
+    events:
+      - http:
+          path: users/{id}
+          method: PATCH
+  delete-users:
+    handler: deleteUsers/handler.deleteUsers
+    runtime: python3.12
+    events:
+      - http:
+          path: users/{id}
+          method: DELETE
 
 resources:
   Resources:
