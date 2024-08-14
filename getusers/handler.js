@@ -1,17 +1,18 @@
-const aws = require('aws-sdk')
+const aws = require("aws-sdk")
 
-let DynamoDBClientParams = {}
+let dynamoDBClientParams = {}
 
 if (process.env.IS_OFFLINE) {
-    DynamoDBClientParams = {
+    dynamoDBClientParams =  {
         region: 'localhost',
         endpoint: 'http://localhost:8000',
         accessKeyId: 'MockAccessKeyId',  // needed if you don't have aws credentials at all in env
-        secretAccessKey: 'MockSecretAccessKey' // needed if you don't have aws credentials at all in env
+        secretAccessKey: 'MockAccessKeyId' // needed if you don't have aws credentials at all in env
     }
 }
 
-const dynamodb = new aws.DynamoDB.DocumentClient(DynamoDBClientParams)
+const dynamodb = new aws.DynamoDB.DocumentClient(dynamoDBClientParams)
+
 
 const getUsers = async (event, context) => {
     console.log("event -> ",JSON.stringify(event));

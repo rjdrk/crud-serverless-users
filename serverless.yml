@@ -11,10 +11,15 @@ provider:
         - Effect: Allow
           Action: 'dynamodb:*'
           Resource: arn:aws:dynamodb:us-east-1:733354705166:table/usersTable
+        - Effect: Allow
+          Action: 's3:*'
+          Resource: arn:aws:s3:::bucket-serverless-rjuarez-01/*
+  environment:
+    BUCKET: bucket-serverless-rjuarez-01
 
-plugins:
-  - serverless-offline
-  - serverless-dynamodb
+# plugins:
+#  - serverless-offline
+#  - serverless-dynamodb
 
 package:
   individually: true
@@ -36,6 +41,8 @@ custom:
 functions:
   get-users:
     handler: getUsers/handler.getUsers
+    layers:
+      - arn:aws:lambda:us-east-1:733354705166:layer:aws-sdk:1
     package:
       patterns:
         - "getUsers/handler.js"
@@ -49,6 +56,8 @@ functions:
                 id: true
   create-users:
     handler: createUsers/handler.createUsers
+    layers:
+      - arn:aws:lambda:us-east-1:733354705166:layer:aws-sdk:1
     package:
       patterns:
         - "createUsers/handler.js"
@@ -61,6 +70,8 @@ functions:
               application/json: ${file(schemas/user-schema.json)}
   update-users:
     handler: updateUsers/handler.updateUsers
+    layers:
+      - arn:aws:lambda:us-east-1:733354705166:layer:aws-sdk:1
     package:
       patterns:
         - "updateUsers/handler.js"
@@ -88,7 +99,44 @@ functions:
             parameters:
               paths:
                 id: true
-
+  signed-url:
+    handler: signedURL/handler.signedS3URL
+    layers:
+      - arn:aws:lambda:us-east-1:733354705166:layer:aws-sdk:1
+    package:
+      patterns:
+        - "signedURL/handler.js"
+    events:
+      - http:
+          path: signedURL
+          method: GET
+          request:
+            parameters:
+              querystrings:
+                fileName: true
+  thumb-generator:
+    handler: thumbnail/handler.thumbnailGenerator
+    layers:
+      - { Ref: BaseLambdaLayer }
+      - arn:aws:lambda:us-east-1:733354705166:layer:aws-sdk:1
+    package:
+      patterns:
+        - "thumbnail/handler.js"
+    events:
+      - s3:
+          bucket: bucket-serverless-rjuarez-01
+          event: s3:ObjectCreated:*
+          existing: true
+          rules:
+            - prefix: upload/
+layers:
+  base:
+    name: "prd-dependencies"
+    compatibleRuntimes:
+      - nodejs20.x
+    package:
+      artifact: app/nodejs.zip
+          
 resources:
   Resources:
     usersTable:
@@ -104,3 +152,27 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+    S3Bucket:
+      Type: 'AWS::S3::Bucket'
+      Properties:
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+          BlockPublicPolicy: false
+        BucketName: bucket-serverless-rjuarez-01
+    SampleBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref S3Bucket
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Action:
+                - 's3:GetObject'
+              Effect: Allow
+              Resource: !Join
+                - ''
+                - - 'arn:aws:s3:::'
+                  - !Ref S3Bucket
+                  - /*
+              Principal: '*'
+      

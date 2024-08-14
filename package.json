@@ -9,14 +9,15 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "aws-sdk": "^2.1672.0",
+    "aws-sdk": "^2.1673.0",
     "serverless": "^4.1.20",
+    "serverless-dynamodb": "^0.2.54",
     "serverless-offline": "^14.0.0"
   },
   "plugins": [
     "serverless-dynamodb-local"
   ],
   "dependencies": {
-    "serverless-dynamodb": "^0.2.54"
+    "sharp": "^0.33.4"
   }
 }
