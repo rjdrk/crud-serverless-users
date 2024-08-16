@@ -24,11 +24,13 @@ provider:
 plugins:
   - serverless-offline
   - serverless-dynamodb
+  - serverless-lift
 
 package:
   individually: true
   patterns:
     - "!*/**"
+    - "!**"
 
 custom:
   serverless-dynamodb:
@@ -41,6 +43,40 @@ custom:
       migrate: true
     # Uncomment only if you already have a DynamoDB running locally
     # noStart: true
+  apiGatewayServiceProxies:
+    - sqs:
+        path: /likeUser
+        method: post
+        queueName: likeQueue
+        cors: true
+        response:
+          template:
+            # `success` is used when the integration response is 200
+            success: |-
+              { "message": "accepted" }
+            # `clientError` is used when the integration response is 400
+            clientError: |-
+              { "message": "there is an error in your request" }
+            # `serverError` is used when the integration response is 500
+            serverError: |-
+              { "message": "there was an error handling your request" }
+
+constructs:
+  sqs-queue:
+    type: queue
+    batchSize: 1
+    worker:
+      handler: likeUser/handler.likeUser
+      reservedConcurrency: 1
+      layers:
+        - arn:aws:lambda:us-east-1:733354705166:layer:aws-sdk:1
+      package:
+        patterns:
+          - "likeUser/handler.js"
+    extensions:
+      queue:
+        Properties:
+          QueueName: likeQueue
 
 functions:
   custom-authorizer:
