@@ -25,7 +25,8 @@ plugins:
   - serverless-offline
   - serverless-dynamodb
   - serverless-lift
-
+  - serverless-apigateway-service-proxy
+  
 package:
   individually: true
   patterns:
